@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100">
+      <!-- Top Navigation Bar -->
+      <div class="bg-white shadow-lg">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <h1 class="text-xl font-bold text-gray-800">Admin Panel</h1>
+                <nav class="flex space-x-6">
+                    <a href="/admin/dashboard" class="text-gray-600 hover:text-gray-900">Dashboard</a>
+                    <a href="/admin/users" class="text-gray-600 hover:text-gray-900">Manage Users</a>
+                    <a href="/admin_logout" class="text-gray-600 hover:text-gray-900">Logout</a>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 p-10">
+            <h2 class="text-2xl font-semibold text-gray-800">Welcome to the Admin Dashboard</h2>
+            <div class="mt-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-lg font-semibold text-gray-800">Total Users</h3>
+                        <p class="text-2xl text-gray-600">{{ total_users }}</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-lg font-semibold text-gray-800">Average Order Value</h3>
+                        <p class="text-2xl text-gray-600">${{ average_order_value }}</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-lg font-semibold text-gray-800">Total Shipping Addresses</h3>
+                        <p class="text-2xl text-gray-600">{{ total_shipping_addresses }}</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-lg font-semibold text-gray-800">Total Revenue</h3>
+                        <p class="text-2xl text-gray-600">${{ total_revenue }}</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-lg font-semibold text-gray-800">Total Orders</h3>
+                        <p class="text-2xl text-gray-600">{{ total_orders_count }}</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-lg font-semibold text-gray-800">Pending Orders</h3>
+                        <p class="text-2xl text-gray-600">{{ pending_orders_count }}</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-lg font-semibold text-gray-800">Successful Orders</h3>
+                        <p class="text-2xl text-gray-600">{{ successful_orders_count }}</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-lg font-semibold text-gray-800">Cancelled Orders</h3>
+                        <p class="text-2xl text-gray-600">{{ cancelled_orders_count }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <h2 class="text-xl font-semibold mt-10">Pending Orders</h2>
+            <table class="min-w-full bg-white border border-gray-300 mt-4">
+                <thead class="bg-gray-200">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Items</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Amount</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Delivery Address</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in pending_orders %}
+                    <tr class="border-b">
+                        <td class="px-6 py-4">{{ order.order_id }}</td>
+                        <td class="px-6 py-4">{{ order.customer_name }}</td>
+                        <td class="px-6 py-4">
+                            <div class="max-h-32 overflow-y-auto">
+                                {% if order.book_titles %}
+                                    {% for book in order.book_titles.split('\n') %}
+                                        <div class="mb-1 text-sm">{{ book.strip() }}</div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="text-gray-500">No books found</div>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">${{ order.total_amount }}</td>
+                        <td class="px-6 py-4">{{ order.delivery_address }}</td>
+                        <td class="px-6 py-4">{{ order.status }}</td>
+                        <td class="py-2 px-4 border-b">
+                            <form action="{{ url_for('update_order_status', order_id=order.order_id) }}" method="POST">
+                                <select name="new_status" class="mr-2 border rounded">
+                                    <option value="Pending" {% if order.status == 'Pending' %}selected{% endif %}>Pending</option>
+                                    <option value="Shipped" {% if order.status == 'Shipped' %}selected{% endif %}>Shipped</option>
+                                    <option value="Delivered" {% if order.status == 'Delivered' %}selected{% endif %}>Delivered</option>
+                                    <option value="Cancelled" {% if order.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                                </select>
+                                <button type="submit" class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition">Update</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            <!-- Update the successful orders section -->
+            <div class="mt-10">
+                <h2 class="text-xl font-semibold mb-4">Successful Orders</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white rounded-lg shadow">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Items</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Amount</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Delivery Address</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order Date</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            {% for order in successful_orders %}
+                            <tr>
+                                <td class="px-6 py-4">{{ order.order_id }}</td>
+                                <td class="px-6 py-4">{{ order.customer_name }}</td>
+                                <td class="px-6 py-4">
+                                    <div class="max-h-32 overflow-y-auto">
+                                        {% if order.book_titles %}
+                                            {% for book in order.book_titles.split('\n') %}
+                                                <div class="mb-1 text-sm">{{ book.strip() }}</div>
+                                            {% endfor %}
+                                        {% else %}
+                                            <div class="text-gray-500">No books found</div>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">${{ order.total_amount }}</td>
+                                <td class="px-6 py-4">{{ order.delivery_address }}</td>
+                                <td class="py-2 px-4 border-b">
+                                    <span class="px-2 py-1 bg-green-100 text-green-800 rounded">
+                                        {{ order.status }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4">{{ order.order_date.strftime('%Y-%m-%d %H:%M') if order.order_date else 'N/A' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Add this section where you want to display cancelled orders -->
+            <h2 class="text-xl font-semibold mt-10">Cancelled Orders</h2>
+            <table class="min-w-full bg-white border border-gray-300 mt-4">
+                <thead class="bg-gray-200">
+                    <tr>
+                        <th class="py-3 px-4 border-b text-left">Order ID</th>
+                        <th class="py-3 px-4 border-b text-left">Customer Name</th>
+                        <th class="py-3 px-4 border-b text-left">Items</th>
+                        <th class="py-3 px-4 border-b text-left">Total Amount</th>
+                        <th class="py-3 px-4 border-b text-left">Delivery Address</th>
+                        <th class="py-3 px-4 border-b text-left">Status</th>
+                        <th class="py-3 px-4 border-b text-left">Order Date</th>
+                        
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in cancelled_orders %}
+                    <tr>
+                        <td class="py-2 px-4 border-b">{{ order.order_id }}</td>
+                        <td class="py-2 px-4 border-b">{{ order.customer_name }}</td>
+                        <td class="px-6 py-4">
+                            <div class="max-h-32 overflow-y-auto">
+                                {% if order.book_titles %}
+                                    {% for book in order.book_titles.split('\n') %}
+                                        <div class="mb-1 text-sm">{{ book.strip() }}</div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="text-gray-500">No books found</div>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="py-2 px-4 border-b">${{ order.total_amount }}</td>
+                        <td class="py-2 px-4 border-b">{{ order.delivery_address }}</td>
+                        <td class="py-2 px-4 border-b">
+                            <span class="px-2 py-1 bg-red-100 text-red-800 rounded">
+                                {{ order.status }}
+                            </span>
+                        </td>
+                        <td class="py-2 px-4 border-b">{{ order.order_date.strftime('%Y-%m-%d %H:%M') if order.order_date else 'N/A' }}</td>
+                    </tr>
+                    {% endfor %}
+                    {% if not cancelled_orders %}
+                    <tr>
+                        <td colspan="7" class="py-4 px-4 text-center">No cancelled orders found</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+            <canvas id="order-chart" width="100" height="100"></canvas>
+            <script>
+                const ctx = document.getElementById('order-chart').getContext('2d');
+                const orderChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Pending Orders', 'Successful Orders'],
+                        datasets: [{
+                            label: 'Order Status',
+                            data: [{ pending_orders_count }, { successful_orders_count }],
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 0.2)', // Color for pending orders
+                                'rgba(54, 162, 235, 0.2)'   // Color for successful orders
+                            ],
+                            borderColor: [
+                                'rgba(255, 99, 132, 1)', // Border color for pending orders
+                                'rgba(54, 162, 235, 1)'   // Border color for successful orders
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            </script>
+        </div>
+    </div>
+    <script>
+        function updateOrderStatus(orderId, newStatus) {
+            if (!newStatus) return;
+            
+            fetch(`/update_order_status/${orderId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `new_status=${newStatus}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert('Error updating order status: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error updating order status');
+            });
+        }
+        </script>
+</body>
+</html>
+
+  

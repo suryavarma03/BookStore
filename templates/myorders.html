@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .order-table th, .order-table td {
+            vertical-align: middle;
+            padding: 12px;
+        }
+        .order-status {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-weight: bold;
+        }
+        .status-shipped {
+            background-color: #28a745;
+            color: white;
+        }
+        .status-pending {
+            background-color: #ffc107;
+            color: black;
+        }
+        .status-delivered {
+            background-color: #007bff;
+            color: white;
+        }
+        .status-cancelled {
+            background-color: #dc3545;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2 class="mb-4">My Orders</h2>
+
+        <!-- Navigation Buttons -->
+        <div class="mb-4">
+            <a href="/user" class="btn btn-primary">Home</a>
+            <a href="/cart" class="btn btn-secondary">cart</a>
+            <a href="/logout" class="btn btn-success">Log out</a>
+        </div>
+        
+        {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <div class="alert alert-danger">
+            {% for message in messages %}
+                {{ message }}
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+        
+        {% if orders %}
+        <div class="table-responsive">
+            <table class="table table-striped order-table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th class="py-2 px-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            Books
+                        </th>
+                        <th>Total Amount</th>
+                        <th>Status</th>
+                        <th>Order Date</th>
+                        <th>Delivery Address</th>
+                        <!-- <th>Products</th> -->
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td>{{ order.order_id }}</td>
+                        <td class="py-2 px-3 border-b border-gray-200">{{ order.book_titles }}</td>
+                        <td>{{ order.total_amount }}</td>
+                        <td>
+                            <span class="order-status status-{{ order.status.lower() }}">
+                                {{ order.status }}
+                            </span>
+                        </td>
+                        <td>{{ order.order_date }}</td>
+                        <td>{{ order.delivery_address }}</td>
+                        <!-- <td>{{ order.product_names }}</td> -->
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            You haven't placed any orders yet.
+        </div>
+        {% endif %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
